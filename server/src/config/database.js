@@ -4,10 +4,15 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+// Decode Aiven's Base64 CA certificate into certificate bytes.
 const caCertificate = process.env.DB_CA_CERT
-  ? `-----BEGIN CERTIFICATE-----\n${process.env.DB_CA_CERT.match(/.{1,64}/g).join('\n')}\n-----END CERTIFICATE-----`
+  ? Buffer.from(
+      process.env.DB_CA_CERT.replace(/\s/g, ''),
+      'base64'
+    )
   : undefined;
 
+// Configure MySQL connection pool.
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   port: Number(process.env.DB_PORT) || 3306,
@@ -15,6 +20,7 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'global_form_db',
 
+  // Enable verified SSL for cloud database connections.
   ...(process.env.DB_SSL === 'true' && {
     ssl: {
       ca: caCertificate,
@@ -29,13 +35,25 @@ const pool = mysql.createPool({
   keepAliveInitialDelay: 0
 });
 
+// Test database connectivity.
 export async function testConnection() {
+  let connection;
+
   try {
-    const connection = await pool.getConnection();
-    connection.release();
+    connection = await pool.getConnection();
+
     return { ok: true };
   } catch (error) {
-    return { ok: false, error: error.message };
+    console.error('Database connection test failed:', error.message);
+
+    return {
+      ok: false,
+      error: error.message
+    };
+  } finally {
+    if (connection) {
+      connection.release();
+    }
   }
 }
 
