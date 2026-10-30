@@ -4,15 +4,17 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-// Decode Aiven's Base64 CA certificate into certificate bytes.
+// Read the complete PEM certificate from Render.
 const caCertificate = process.env.DB_CA_CERT
-  ? Buffer.from(
-      process.env.DB_CA_CERT.replace(/\s/g, ''),
-      'base64'
-    )
+  ? process.env.DB_CA_CERT.replace(/\\n/g, '\n').trim()
   : undefined;
 
-// Configure MySQL connection pool.
+const useSSL = process.env.DB_SSL === 'true';
+
+if (useSSL && !caCertificate) {
+  throw new Error('DB_CA_CERT is missing. Cannot establish verified SSL connection.');
+}
+
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   port: Number(process.env.DB_PORT) || 3306,
@@ -20,8 +22,7 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'global_form_db',
 
-  // Enable verified SSL for cloud database connections.
-  ...(process.env.DB_SSL === 'true' && {
+  ...(useSSL && {
     ssl: {
       ca: caCertificate,
       rejectUnauthorized: true
@@ -35,21 +36,16 @@ const pool = mysql.createPool({
   keepAliveInitialDelay: 0
 });
 
-// Test database connectivity.
 export async function testConnection() {
   let connection;
 
   try {
     connection = await pool.getConnection();
-
+    console.log('Connected to MySQL database successfully');
     return { ok: true };
   } catch (error) {
     console.error('Database connection test failed:', error.message);
-
-    return {
-      ok: false,
-      error: error.message
-    };
+    return { ok: false, error: error.message };
   } finally {
     if (connection) {
       connection.release();
