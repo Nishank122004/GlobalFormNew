@@ -4,6 +4,10 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const caCertificate = process.env.DB_CA_CERT
+  ? `-----BEGIN CERTIFICATE-----\n${process.env.DB_CA_CERT.match(/.{1,64}/g).join('\n')}\n-----END CERTIFICATE-----`
+  : undefined;
+
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   port: Number(process.env.DB_PORT) || 3306,
@@ -11,9 +15,9 @@ const pool = mysql.createPool({
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'global_form_db',
 
-  // Enable SSL for cloud database connections.
   ...(process.env.DB_SSL === 'true' && {
     ssl: {
+      ca: caCertificate,
       rejectUnauthorized: true
     }
   }),
