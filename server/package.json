@@ -1,0 +1,27 @@
+{
+  "name": "global-form-server",
+  "version": "1.0.0",
+  "description": "Backend REST API for Global Personal Information Form",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "helmet": "^8.0.0",
+    "libphonenumber-js": "^1.11.9",
+    "mysql2": "^3.11.0",
+    "validator": "^13.12.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7",
+    "supertest": "^7.0.0",
+    "vitest": "^2.1.1"
+  }
+}

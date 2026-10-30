@@ -1,0 +1,88 @@
+{
+  "app": {
+    "title": "Formulario Global de Información Personal",
+    "subtitle": "Por favor, complete sus datos personales a continuación. Los campos marcados con asterisco (*) son obligatorios."
+  },
+  "languageSelector": {
+    "label": "Idioma"
+  },
+  "fields": {
+    "fullName": {
+      "label": "Nombre completo",
+      "placeholder": "ej. María García"
+    },
+    "email": {
+      "label": "Correo electrónico",
+      "placeholder": "nombre@ejemplo.com"
+    },
+    "countryCode": {
+      "label": "País de residencia",
+      "selectPrompt": "-- Seleccione un país --"
+    },
+    "mobileNumber": {
+      "label": "Número de teléfono móvil",
+      "placeholder": "ej. 612345678"
+    },
+    "dateOfBirth": {
+      "label": "Fecha de nacimiento"
+    },
+    "gender": {
+      "label": "Género (Opcional)",
+      "selectPrompt": "-- Seleccione género --",
+      "options": {
+        "male": "Masculino",
+        "female": "Femenino",
+        "other": "No binario / Otro",
+        "prefer_not_to_say": "Prefiero no decirlo"
+      }
+    },
+    "city": {
+      "label": "Ciudad / Población",
+      "placeholder": "ej. Madrid o Barcelona"
+    },
+    "postalCode": {
+      "label": "Código postal (Opcional)",
+      "placeholder": "ej. 28001"
+    },
+    "preferredLanguage": {
+      "label": "Idioma preferido (Opcional)",
+      "selectPrompt": "-- Seleccione idioma preferido --",
+      "options": {
+        "en": "Inglés (English)",
+        "hi": "Hindi (हिंदी)",
+        "fr": "Francés (Français)",
+        "es": "Español",
+        "ar": "Árabe (العربية)"
+      }
+    }
+  },
+  "buttons": {
+    "submit": "Enviar información",
+    "submitting": "Enviando..."
+  },
+  "status": {
+    "successTitle": "¡Envío exitoso!",
+    "successMessage": "Su información personal ha sido verificada y guardada en la base de datos.",
+    "errorTitle": "Error en el envío",
+    "duplicateError": "El usuario ya existe. Esta información ya ha sido enviada.",
+    "networkError": "No se puede conectar al servidor. Asegúrese de que el backend esté en ejecución.",
+    "generalError": "Por favor corrija los campos resaltados e intente de nuevo."
+  },
+  "validation": {
+    "fullNameRequired": "El nombre completo es obligatorio.",
+    "fullNameNoNumbers": "El nombre no puede contener números.",
+    "fullNameInvalid": "Por favor ingrese un nombre válido.",
+    "fullNameLength": "El nombre debe tener entre 2 y 100 caracteres.",
+    "emailRequired": "El correo electrónico es obligatorio.",
+    "emailInvalid": "Ingrese un correo electrónico válido.",
+    "countryRequired": "El país de residencia es obligatorio.",
+    "phoneRequired": "El número de móvil es obligatorio.",
+    "phoneInvalid": "Ingrese un número de móvil válido para el país seleccionado.",
+    "dobRequired": "La fecha de nacimiento es obligatoria.",
+    "dobInvalid": "Seleccione una fecha válida.",
+    "dobFuture": "La fecha de nacimiento no puede ser futura.",
+    "cityRequired": "La ciudad es obligatoria.",
+    "cityLength": "La ciudad debe tener entre 2 y 100 caracteres.",
+    "postalInvalid": "Ingrese un código postal válido para el país seleccionado."
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "app": {
+    "title": "Formulaire Global d'Informations Personnelles",
+    "subtitle": "Veuillez renseigner vos coordonnées ci-dessous. Les champs marqués d'un astérisque (*) sont obligatoires."
+  },
+  "languageSelector": {
+    "label": "Langue"
+  },
+  "fields": {
+    "fullName": {
+      "label": "Nom complet",
+      "placeholder": "ex. Jean Dupont"
+    },
+    "email": {
+      "label": "Adresse e-mail",
+      "placeholder": "nom@exemple.com"
+    },
+    "countryCode": {
+      "label": "Pays de résidence",
+      "selectPrompt": "-- Sélectionnez un pays --"
+    },
+    "mobileNumber": {
+      "label": "Numéro de portable",
+      "placeholder": "ex. 0612345678"
+    },
+    "dateOfBirth": {
+      "label": "Date de naissance"
+    },
+    "gender": {
+      "label": "Genre (Facultatif)",
+      "selectPrompt": "-- Sélectionnez un genre --",
+      "options": {
+        "male": "Homme",
+        "female": "Femme",
+        "other": "Non-binaire / Autre",
+        "prefer_not_to_say": "Préfère ne pas répondre"
+      }
+    },
+    "city": {
+      "label": "Ville / Commune",
+      "placeholder": "ex. Paris ou Lyon"
+    },
+    "postalCode": {
+      "label": "Code postal (Facultatif)",
+      "placeholder": "ex. 75001"
+    },
+    "preferredLanguage": {
+      "label": "Langue préférée (Facultatif)",
+      "selectPrompt": "-- Sélectionnez une langue --",
+      "options": {
+        "en": "Anglais (English)",
+        "hi": "Hindi (हिंदी)",
+        "fr": "Français",
+        "es": "Espagnol (Español)",
+        "ar": "Arabe (العربية)"
+      }
+    }
+  },
+  "buttons": {
+    "submit": "Soumettre les informations",
+    "submitting": "Envoi en cours..."
+  },
+  "status": {
+    "successTitle": "Soumission réussie !",
+    "successMessage": "Vos informations personnelles ont été vérifiées et enregistrées dans la base de données.",
+    "errorTitle": "Échec de la soumission",
+    "duplicateError": "L'utilisateur existe déjà. Ces informations ont déjà été soumises.",
+    "networkError": "Impossible de se connecter au serveur. Veuillez vérifier que le backend est en cours d'exécution.",
+    "generalError": "Veuillez corriger les champs en surbrillance et réessayer."
+  },
+  "validation": {
+    "fullNameRequired": "Le nom complet est obligatoire.",
+    "fullNameNoNumbers": "Le nom ne peut pas contenir de chiffres.",
+    "fullNameInvalid": "Veuillez entrer un nom valide.",
+    "fullNameLength": "Le nom doit comporter entre 2 et 100 caractères.",
+    "emailRequired": "L'adresse e-mail est obligatoire.",
+    "emailInvalid": "Entrez une adresse e-mail valide.",
+    "countryRequired": "Le pays de résidence est obligatoire.",
+    "phoneRequired": "Le numéro de portable est obligatoire.",
+    "phoneInvalid": "Entrez un numéro de portable valide pour le pays sélectionné.",
+    "dobRequired": "La date de naissance est obligatoire.",
+    "dobInvalid": "Veuillez sélectionner une date valide.",
+    "dobFuture": "La date de naissance ne peut pas être dans le futur.",
+    "cityRequired": "La ville est obligatoire.",
+    "cityLength": "La ville doit comporter entre 2 et 100 caractères.",
+    "postalInvalid": "Entrez un code postal valide pour le pays sélectionné."
+  }
+}

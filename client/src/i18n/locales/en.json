@@ -1,0 +1,88 @@
+{
+  "app": {
+    "title": "Global Personal Information Form",
+    "subtitle": "Please provide your personal details below. Fields marked with an asterisk (*) are required."
+  },
+  "languageSelector": {
+    "label": "Language"
+  },
+  "fields": {
+    "fullName": {
+      "label": "Full Name",
+      "placeholder": "e.g. Jean-Luc Picard or राहुल शर्मा"
+    },
+    "email": {
+      "label": "Email Address",
+      "placeholder": "name@example.com"
+    },
+    "countryCode": {
+      "label": "Country of Residence",
+      "selectPrompt": "-- Select a Country --"
+    },
+    "mobileNumber": {
+      "label": "Mobile Number",
+      "placeholder": "e.g. 9876543210"
+    },
+    "dateOfBirth": {
+      "label": "Date of Birth"
+    },
+    "gender": {
+      "label": "Gender (Optional)",
+      "selectPrompt": "-- Select Gender --",
+      "options": {
+        "male": "Male",
+        "female": "Female",
+        "other": "Non-binary / Other",
+        "prefer_not_to_say": "Prefer not to say"
+      }
+    },
+    "city": {
+      "label": "City / Town",
+      "placeholder": "e.g. Tokyo, Paris, or Mumbai"
+    },
+    "postalCode": {
+      "label": "Postal / ZIP Code (Optional)",
+      "placeholder": "e.g. 75001 or 110001"
+    },
+    "preferredLanguage": {
+      "label": "Preferred Language (Optional)",
+      "selectPrompt": "-- Select Preferred Language --",
+      "options": {
+        "en": "English",
+        "hi": "Hindi (हिंदी)",
+        "fr": "French (Français)",
+        "es": "Spanish (Español)",
+        "ar": "Arabic (العربية)"
+      }
+    }
+  },
+  "buttons": {
+    "submit": "Submit Information",
+    "submitting": "Submitting..."
+  },
+  "status": {
+    "successTitle": "Submission Successful!",
+    "successMessage": "Your personal information has been verified and saved to the database.",
+    "errorTitle": "Submission Failed",
+    "duplicateError": "User already exists. This information has already been submitted.",
+    "networkError": "Unable to connect to the server. Please ensure the backend is running.",
+    "generalError": "Please correct the highlighted fields and try again."
+  },
+  "validation": {
+    "fullNameRequired": "Full name is required.",
+    "fullNameNoNumbers": "Name cannot contain numbers.",
+    "fullNameInvalid": "Please enter a valid name.",
+    "fullNameLength": "Name must be between 2 and 100 characters.",
+    "emailRequired": "Email address is required.",
+    "emailInvalid": "Enter a valid email address.",
+    "countryRequired": "Country of residence is required.",
+    "phoneRequired": "Mobile number is required.",
+    "phoneInvalid": "Enter a valid mobile number for the selected country.",
+    "dobRequired": "Date of birth is required.",
+    "dobInvalid": "Please select a valid date.",
+    "dobFuture": "Date of birth cannot be in the future.",
+    "cityRequired": "City/Town is required.",
+    "cityLength": "City must be between 2 and 100 characters.",
+    "postalInvalid": "Enter a valid postal/ZIP code for the selected country."
+  }
+}
