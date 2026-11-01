@@ -7,10 +7,12 @@ node_modules/
 .env
 .env.*
 !.env.example
+server/.env.aiven
 
 # Build outputs
 dist/
 build/
+.vite/
 
 # Logs
 npm-debug.log*

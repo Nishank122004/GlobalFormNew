@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import request from 'supertest';
 import app from '../src/app.js';
 import * as formService from '../src/services/formService.js';
+import * as csvRecordService from '../src/services/csvRecordService.js';
 
 describe('POST /api/personal-info', () => {
   beforeEach(() => {
@@ -264,5 +265,84 @@ describe('POST /api/personal-info', () => {
     expect(res.status).toBe(503);
     expect(res.body.success).toBe(false);
     expect(res.body.message).toContain('database service is temporarily unavailable');
+  });
+});
+
+describe('GET /api/csv-records/:username', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const mockRecord = {
+    username: 'sample_user',
+    email: 'sample@example.com',
+    mobile: '001234',
+    city: 'Testville',
+    postal_code: '00123'
+  };
+
+  it('should return 200 with record data and Cache-Control: no-store when username exists', async () => {
+    vi.spyOn(csvRecordService, 'findCsvRecordByUsername').mockResolvedValueOnce(mockRecord);
+
+    const res = await request(app).get('/api/csv-records/sample_user');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['cache-control']).toBe('no-store');
+    expect(res.body).toEqual({
+      success: true,
+      message: 'Record retrieved successfully.',
+      data: mockRecord
+    });
+    // Ensure internal fields (id, timestamps) are not exposed
+    expect(res.body.data.id).toBeUndefined();
+    expect(res.body.data.created_at).toBeUndefined();
+    expect(res.body.data.updated_at).toBeUndefined();
+  });
+
+  it('should return 404 when username does not exist', async () => {
+    vi.spyOn(csvRecordService, 'findCsvRecordByUsername').mockResolvedValueOnce(null);
+
+    const res = await request(app).get('/api/csv-records/nonexistent_user');
+
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({
+      success: false,
+      message: 'No matching record found.'
+    });
+  });
+
+  it('should return 400 when username format is invalid', async () => {
+    const res = await request(app).get('/api/csv-records/invalid%20username!');
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({
+      success: false,
+      message: 'Enter a valid username.'
+    });
+  });
+
+  it('should return 503 when the database service is unavailable', async () => {
+    const dbError = new Error('Database connection timed out');
+    dbError.code = 'POOL_ACQUIRE_TIMEOUT';
+    vi.spyOn(csvRecordService, 'findCsvRecordByUsername').mockRejectedValueOnce(dbError);
+
+    const res = await request(app).get('/api/csv-records/sample_user');
+
+    expect(res.status).toBe(503);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toContain('database service is temporarily unavailable');
+  });
+
+  it('should return 500 on unexpected internal server error with generic message', async () => {
+    const unexpectedError = new Error('Unexpected internal failure');
+    vi.spyOn(csvRecordService, 'findCsvRecordByUsername').mockRejectedValueOnce(unexpectedError);
+
+    const res = await request(app).get('/api/csv-records/sample_user');
+
+    expect(res.status).toBe(500);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('An unexpected server error occurred. Please try again later.');
+    expect(res.body.errors.general).toBe('Internal server error.');
+    expect(JSON.stringify(res.body)).not.toMatch(/password|stack|query|SELECT/i);
   });
 });

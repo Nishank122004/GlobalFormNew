@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +16,11 @@ export default function PersonalInfoForm() {
     state: 'idle', // 'idle' | 'success' | 'error'
     message: ''
   });
+  const successTimerRef = useRef(null);
+
+  useEffect(() => () => {
+    if (successTimerRef.current) clearTimeout(successTimerRef.current);
+  }, []);
 
   // Dynamically compile the Zod schema with localized messages
   const schema = useMemo(() => createFormSchema(t), [t]);
@@ -103,6 +108,10 @@ export default function PersonalInfoForm() {
   }, []);
 
   const onSubmit = async (formData) => {
+    if (successTimerRef.current) {
+      clearTimeout(successTimerRef.current);
+      successTimerRef.current = null;
+    }
     setSubmissionStatus({ state: 'idle', message: '' });
 
     // Ensure phone number includes country calling code if user entered national format
@@ -123,6 +132,10 @@ export default function PersonalInfoForm() {
         state: 'success',
         message: t('status.successMessage')
       });
+      successTimerRef.current = setTimeout(() => {
+        setSubmissionStatus({ state: 'idle', message: '' });
+        successTimerRef.current = null;
+      }, 3000);
       // Reset form fields ONLY after the backend confirms database insert succeeded
       reset();
     } else {

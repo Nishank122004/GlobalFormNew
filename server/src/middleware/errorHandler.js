@@ -1,3 +1,5 @@
+import { classifyDatabaseError } from '../config/database.js';
+
 /**
  * Centralized Express Error Handling Middleware.
  * 
@@ -8,8 +10,24 @@
  *   are NEVER leaked to the client browser.
  */
 export function errorHandler(err, req, res, next) {
-  // Always log internal details to the server console for debugging
-  console.error('[SERVER ERROR]:', err);
+  const databaseCodes = new Set([
+    'POOL_ACQUIRE_TIMEOUT', 'POOL_QUEUE_FULL', 'ECONNREFUSED', 'PROTOCOL_CONNECTION_LOST',
+    'ETIMEDOUT', 'EHOSTUNREACH', 'PROTOCOL_SEQUENCE_TIMEOUT', 'ER_ACCESS_DENIED_ERROR', 'ER_BAD_DB_ERROR'
+  ]);
+  if (databaseCodes.has(err.code) || err.message === 'Queue limit reached.') {
+    const category = classifyDatabaseError(err);
+    console.error(`[DB] Request failed: ${category}`);
+  } else {
+    const safeMessage = typeof err.message === 'string'
+      ? err.message.replace(/:[^@\s]+@/g, ':***@')
+      : undefined;
+    console.error('[SERVER ERROR]:', {
+      name: err.name,
+      code: err.code,
+      message: safeMessage,
+      status: err.status || err.statusCode
+    });
+  }
 
   // 1. Handle malformed JSON body errors from express.json()
   if (err.type === 'entity.parse.failed' || (err instanceof SyntaxError && err.status === 400 && 'body' in err)) {
@@ -25,7 +43,13 @@ export function errorHandler(err, req, res, next) {
     err.code === 'ECONNREFUSED' ||
     err.code === 'PROTOCOL_CONNECTION_LOST' ||
     err.code === 'ER_ACCESS_DENIED_ERROR' ||
-    err.code === 'ER_BAD_DB_ERROR'
+    err.code === 'ER_BAD_DB_ERROR' ||
+    err.code === 'POOL_ACQUIRE_TIMEOUT' ||
+    err.code === 'POOL_QUEUE_FULL' ||
+    err.message === 'Queue limit reached.' ||
+    err.code === 'PROTOCOL_SEQUENCE_TIMEOUT' ||
+    err.code === 'ETIMEDOUT' ||
+    err.code === 'EHOSTUNREACH'
   ) {
     return res.status(503).json({
       success: false,
@@ -51,3 +75,4 @@ export function errorHandler(err, req, res, next) {
     errors: { general: 'Internal server error.' }
   });
 }
+

@@ -1,4 +1,4 @@
-import pool from '../config/database.js';
+import { executeDatabaseQuery } from '../config/database.js';
 import { computeSubmissionFingerprint } from '../utils/fingerprint.js';
 
 /**
@@ -18,7 +18,7 @@ export async function findDuplicateRecord(formData) {
     LIMIT 1
   `;
 
-  const [rows] = await pool.execute(sql, [fingerprint]);
+  const [rows] = await executeDatabaseQuery(sql, [fingerprint]);
   return rows.length > 0;
 }
 
@@ -83,7 +83,7 @@ export async function savePersonalInfo(formData) {
   ];
 
   // pool.execute uses prepared statements for optimal performance and safety
-  const [result] = await pool.execute(sql, values);
+  const [result] = await executeDatabaseQuery(sql, values);
 
   return {
     id: result.insertId,

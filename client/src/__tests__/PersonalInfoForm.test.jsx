@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import App from '../App.jsx';
@@ -241,6 +241,26 @@ describe('Global Personal Information Form - Frontend Integration Tests', () => 
       // Inputs reset after success
       expect(screen.getByLabelText(/Full Name/i).value).toBe('');
     });
+  });
+
+  it('automatically dismisses the success message after three seconds', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(formService, 'submitForm').mockResolvedValueOnce({ success: true, data: { id: 2 } });
+    render(<App />);
+
+    await user.type(screen.getByLabelText(/Full Name/i), 'Sarah Connor');
+    await user.type(screen.getByLabelText(/Email Address/i), 'sarah@example.com');
+    await user.selectOptions(screen.getByLabelText(/Country of Residence/i), 'US');
+    await user.type(screen.getByLabelText(/Mobile Number/i), '4155552671');
+    fireEvent.change(screen.getByLabelText(/Date of Birth/i), { target: { value: '1985-05-20' } });
+    await user.type(screen.getByLabelText(/City/i), 'Los Angeles');
+    await user.click(screen.getByRole('button', { name: /Submit Information/i }));
+
+    expect(await screen.findByText(/Submission Successful!/i)).toBeInTheDocument();
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 3100));
+    });
+    expect(screen.queryByText(/Submission Successful!/i)).not.toBeInTheDocument();
   });
 
   it('displays server-side validation errors beside corresponding fields without clearing inputs', async () => {

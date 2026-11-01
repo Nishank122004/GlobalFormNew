@@ -143,6 +143,17 @@ body {
   border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
+.csv-search-card { margin-top: 24px; }
+.csv-search-card h2 { margin-bottom: 8px; }
+.search-demo-note, .search-message { margin: 12px 0; color: var(--text-muted); }
+.csv-search-controls { display: flex; gap: 10px; margin-top: 6px; }
+.csv-search-controls input { flex: 1; min-width: 0; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; }
+.csv-search-controls button { padding: 10px 16px; border: 0; border-radius: 6px; background: var(--primary-color); color: white; cursor: pointer; }
+.csv-search-controls button:disabled { opacity: .6; cursor: wait; }
+.csv-result { display: grid; grid-template-columns: minmax(110px, .4fr) 1fr; gap: 8px 16px; margin-top: 20px; overflow-wrap: anywhere; }
+.csv-result dt { font-weight: 700; }
+@media (max-width: 560px) { .csv-search-controls { flex-wrap: wrap; } .csv-search-controls input { flex-basis: 100%; } }
+
 /* Status Banners */
 .status-banner {
   display: flex;

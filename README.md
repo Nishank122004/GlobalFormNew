@@ -126,8 +126,43 @@ GlobalFormNew/
 - **mysql2/promise**: Connection pooling with Promise API and native prepared statements.
 - **Zod**: Strict request body validation on the server.
 - **Helmet**: Secures Express apps by setting various HTTP headers (X-Frame-Options, X-Content-Type-Options, etc.).
-- **CORS**: Enforces origin restrictions, allowing only the trusted client URL.
+- **CORS**: Origin filtering supporting designated frontend origins in dev and production.
 - **Vitest & Supertest**: Automated integration testing of HTTP routes.
+
+---
+
+## CSV Retrieval Module (Synthetic Demonstration)
+
+### Overview & Security Notice
+> **Notice**: The CSV retrieval endpoint is an unauthenticated demonstration feature operating over 10,000 synthetic records. It is designed to illustrate query optimization, database indexing, rate limiting, and connection pooling. It must **not** be used to expose real-world personally identifiable information (PII).
+
+### Key Technical Specifications
+- **Endpoint**: `GET /api/csv-records/:username`
+- **Lookup Column**: `username` (indexed via unique constraint `uq_csv_records_username`)
+- **Query Optimization**: Exact match parameterized lookup (`WHERE username = ? LIMIT 1`) with `const` table scan in MySQL (`O(1)` performance confirmed via `EXPLAIN`).
+- **Data Minimization**: Returns only 5 fields (`username`, `email`, `mobile`, `city`, `postal_code`). Internal database IDs (`id`) and timestamps (`created_at`, `updated_at`) are never exposed.
+- **Collation-Backed Case-Insensitivity**: Matches case-insensitively using `utf8mb4_unicode_ci` without expensive `LOWER()` SQL functions that break index usage.
+- **Cache Security**: Emits `Cache-Control: no-store` on all lookup responses.
+- **Rate Limiting**: 30 requests per minute per IP using an in-memory Map with automatic periodic pruning of expired entries to prevent memory leaks. Safely falls back to socket remote address.
+- **HTTP Status Codes**:
+  - `200 OK`: Existing username found.
+  - `400 Bad Request`: Invalid username characters or length.
+  - `404 Not Found`: Username does not match any record.
+  - `429 Too Many Requests`: IP exceeded 30 lookups/minute.
+  - `503 Service Unavailable`: Database connection or pool acquisition timeout.
+  - `500 Internal Server Error`: Unexpected server failure with client-safe message.
+
+---
+
+## Environment Configuration Hierarchy
+
+The backend features a smart environment loader (`server/src/config/env.js`) with the following priority:
+1. **Explicit `ENV_FILE`**: If `process.env.ENV_FILE` is set (e.g. `ENV_FILE=.env.aiven`), that specific file is loaded.
+2. **`.env.aiven` (Default for local full demo)**: If `.env.aiven` exists, it is loaded automatically so that the 10,000 demonstration CSV records and registration both work out-of-the-box with verified SSL.
+3. **`.env` (Local MySQL)**: If `.env.aiven` is not present, falls back to `server/.env` for local standalone MySQL instances.
+4. **Cloud / Render Environment Variables**: When deployed to Render or production, system environment variables injected by the host platform take precedence.
+
+> **Rule**: Example files (`.env.example`, `.env.aiven.example`) contain placeholders only. Actual `.env` and `.env.aiven` files contain credentials and are ignored by Git.
 
 ---
 
@@ -230,86 +265,103 @@ If your database already contains records, run `migration_add_fingerprint.sql` t
 mysql -u root -p < C:/Users/nisha/OneDrive/Desktop/GlobalFormNew/server/migration_add_fingerprint.sql
 ```
 
-### Step 3: Configure Environment Variables
-- **Backend**: In `server/`, create `.env` (or copy from `.env.example`):
-  ```env
-  PORT=5000
-  CLIENT_ORIGIN=http://localhost:5173
-  DB_HOST=localhost
-  DB_PORT=3306
-  DB_USER=root
-  DB_PASSWORD=your_mysql_password
-  DB_NAME=global_form_db
-  ```
-- **Frontend**: In `client/`, create `.env` (or copy from `.env.example`):
-  ```env
-  VITE_API_BASE_URL=http://localhost:5000/api
-  ```
+### Step 3: Configure Environment Files
+1. **Backend Configuration**:
+   - The user has `server/.env.aiven` for the Aiven cloud MySQL service (containing `defaultdb` with the 10,000 CSV records and registration table).
+   - Alternatively, `server/.env` is configured for local MySQL (`global_form_db`).
+   - The backend automatically detects and prioritizes `.env.aiven` if present. To force local MySQL:
+     ```powershell
+     $env:ENV_FILE = ".env"
+     ```
+2. **Frontend Configuration**:
+   - In `client/.env`:
+     ```env
+     VITE_API_BASE_URL=http://localhost:5000/api
+     ```
 
 ### Step 4: Run the Backend Server
-```bash
+In PowerShell:
+```powershell
 cd server
+npm install
 npm run dev
 ```
-The server will start on `http://localhost:5000`.
+Output confirms:
+```text
+[ENV] Loaded database configuration from .env.aiven
+Connected to MySQL database successfully
+✅ Connected to MySQL database successfully.
+🚀 Global Form Backend running on http://localhost:5000
+```
 
 ### Step 5: Run the Frontend Client
-In a new terminal:
-```bash
+In a second PowerShell terminal:
+```powershell
 cd client
+npm install
 npm run dev
 ```
 Open `http://localhost:5173` in your browser.
 
 ---
 
-## Running the Test Suites
+## Running the Automated Test Suites (68 Total Passing Tests)
 
-### Backend Unit & Integration Tests (20 Tests across 2 test suites)
-```bash
+### Backend Test Suite (46 Tests across 5 test suites)
+In PowerShell:
+```powershell
 cd server
 npm test
 ```
-Tests verified:
-- Valid submission (201 Created)
-- Detection and rejection of exact 9-field duplicate submission (409 Conflict with code `DUPLICATE_USER`)
-- Prevention of duplicate database row insertion on resubmission
-- Independent identity: allowing records with same email but different full name / phone
-- Independent identity: allowing records with same full name but different email
-- Concurrent duplicate submission race condition handling via `ER_DUP_ENTRY`
-- Canonical fingerprinting normalization & null handling across all 9 fields
-- International Unicode names (Hindi, Arabic)
-- Rejection of names with numbers
-- Rejection of invalid email formats
-- Rejection of future dates of birth
-- Country-specific phone number validation
-- Country-specific postal code validation
-- Optional field handling (empty/null)
-- Rejection of malformed JSON
-- Database service unavailability (503 Service Unavailable)
+**Test Breakdown:**
+- `tests/formApi.test.js` (19 tests):
+  - Form registration validation, Unicode support, E.164 phone numbers, duplicate detection (409 Conflict), DB outage (503), malformed JSON (400).
+  - CSV lookup API integration: 200 with record data, 404 for unknown username, 400 for invalid username format, 503 for pool/connection failure, 500 for unexpected error.
+- `tests/csvRecord.test.js` (10 tests):
+  - Service unit tests: exact parameterized lookup, index utilization, null on missing, failure propagation.
+  - Controller unit tests: whitespace trimming, collation-backed case insensitivity, 5-field schema validation, 404 handling, error forwarding.
+- `tests/csvLookupRateLimit.test.js` (6 tests):
+  - In-memory rate limiting: 30 allowed, 31st rejected (429), per-IP independence, 60s reset window, socket address fallback, safe handling of malformed IPs.
+- `tests/fingerprint.test.js` (6 tests):
+  - Canonical SHA-256 9-field hashing, whitespace and case normalization, consistent NULL markers, Unicode support.
+- `tests/databasePool.test.js` (5 tests):
+  - Shared connection pool reuse, acquisition timeout (3s), query timeout (5s), queue exhaustion mapping (`POOL_QUEUE_FULL`), single release on success and error.
 
-### Frontend Integration Tests (15 Tests)
-```bash
+### Frontend Test Suite (22 Tests across 2 test suites)
+In PowerShell:
+```powershell
 cd client
 npm test
 ```
-Tests verified:
-- 9 fields + language selector rendering
-- Required field error displays on empty submission
-- Numbers in name rejection
-- International Unicode name acceptance
-- Invalid email rejection
-- Future date of birth rejection
-- Country-aware phone validation
-- Country change re-triggers phone validation
-- Blank optional postal code accepted
-- Invalid postal code rejected for supported countries
-- Language switching preserves form values
-- Arabic RTL direction toggling
-- Successful submission with feedback and form reset
-- Server-side error mapping to fields
-- Localized duplicate user error (409 Conflict) display with form state preservation
-- Offline/Server unavailability handling without crashing
+**Test Breakdown:**
+- `src/__tests__/PersonalInfoForm.test.jsx` (16 tests):
+  - Full 9-field form rendering, required validations, Unicode names, E.164 phone numbering plan, postal code checks, Arabic RTL layout switching, 3-second auto-dismissal, 409 duplicate user handling, server outage handling.
+- `src/__tests__/CsvRecordSearch.test.jsx` (6 tests):
+  - Search UI rendering, empty input validation alert, successful record display (`dl`), 404 alert display, network error resilience, form reset on Clear button click.
+
+---
+
+## Deployment Readiness
+
+### Frontend (Vercel)
+- **Framework Preset**: Vite / React SPA
+- **Build Command**: `npm run build`
+- **Output Directory**: `dist`
+- **Environment Variable**: `VITE_API_BASE_URL=https://your-backend-service.onrender.com/api`
+
+### Backend (Render)
+- **Environment**: Node.js
+- **Build Command**: `npm install`
+- **Start Command**: `npm start` (runs `node src/server.js`)
+- **Health Check Path**: `/api/health`
+- **Reverse Proxy**: Configured with `app.set('trust proxy', 1)` in production.
+- **Environment Variables**: `PORT`, `NODE_ENV=production`, `CLIENT_ORIGIN`, `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_SSL=true`, `DB_CA_CERT`.
+
+### Database (Aiven MySQL 8.4)
+- **Host & Port**: Verified SSL connection with `rejectUnauthorized: true`.
+- **Database**: `defaultdb`
+- **Tables**: `personal_information` (registration records with unique fingerprint), `csv_records` (10,000 synthetic records with `uq_csv_records_username`).
+- **Connection Pool**: 10 connection limit, 20 queue limit, keepalive enabled.
 
 ---
 
